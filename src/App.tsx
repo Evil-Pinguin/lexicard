@@ -59,6 +59,9 @@ function App() {
 
   const [wordCount, setWordCount] = useState<number>(5);
 
+  const [timerDuration, setTimerDuration] = useState<number>(10);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
   const currentWord = words[currentIndex];
 
   const generateChoices = (correctWord: WordCard, dir: Direction = direction) => {
@@ -187,7 +190,10 @@ function App() {
       console.error('Ошибка сохранения в LocalStorage', e);
     }
   }, [learnedWords]);
-
+    // Применяем тему к документу
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
   // Таймер
   useEffect(() => {
     if (mode === null || isFinished || answerStatus !== 'idle') return;
@@ -219,6 +225,10 @@ function App() {
         learnedWords={learnedWords}
         wordCount={wordCount}
         setWordCount={setWordCount}
+        theme={theme}                    
+        setTheme={setTheme}              
+        timerDuration={timerDuration}    
+        setTimerDuration={setTimerDuration}
       />
     );
   }

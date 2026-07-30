@@ -31,7 +31,18 @@ export const Flashcard = ({
       inputRef.current?.focus();
     }
   }, [currentWord, mode, answerStatus]);
-
+  
+    // Автопроизведение слова при его смене
+  useEffect(() => {
+    if (direction === 'en-ru') {
+      const utterance = new SpeechSynthesisUtterance(currentWord.english);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+    // Очищаем очередь, если пользователь быстро листает карточки
+    return () => window.speechSynthesis.cancel();
+  }, [currentWord, direction]);
   // Определяем, какое слово показывать крупно, а какое прятать
   const displayWord = direction === 'en-ru' ? currentWord.english : currentWord.russian;
   const correctAnswerText = direction === 'en-ru' ? currentWord.russian : currentWord.english;

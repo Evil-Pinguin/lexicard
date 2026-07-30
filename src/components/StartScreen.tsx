@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { type Mode, type WordCard, type Direction } from '../types';
-
+import { SettingsMenu } from './SettingsMenu';
 interface StartScreenProps {
   setMode: (mode: Mode) => void;
   generateChoices: (correctWord: WordCard, dir?: Direction) => void;
@@ -11,12 +12,17 @@ interface StartScreenProps {
   learnedWords: WordCard[];
   wordCount: number;
   setWordCount: (count: number) => void;
+  theme: 'light' | 'dark';
+  setTheme: React.Dispatch<React.SetStateAction<'light' | 'dark'>>;
+  timerDuration: number;
+  setTimerDuration: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export const StartScreen = ({ 
-  setMode, generateChoices, currentWord, topic, setTopic, isLoading, handleGenerateWords, learnedWords, wordCount, setWordCount 
+  setMode, generateChoices, currentWord, topic, setTopic, isLoading, handleGenerateWords, learnedWords, wordCount, setWordCount,
+  theme, setTheme, timerDuration, setTimerDuration
 }: StartScreenProps) => {
-  
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
     const handleAiKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
   
     if (e.key === 'Enter' && !isLoading) {
@@ -25,6 +31,18 @@ export const StartScreen = ({
   };
 
   return (
+     <>
+      <button className="hamburger-btn" onClick={() => setIsMenuOpen(true)}>☰</button>
+      
+      {isMenuOpen && (
+        <SettingsMenu 
+          theme={theme}
+          setTheme={setTheme}
+          timerDuration={timerDuration}
+          setTimerDuration={setTimerDuration}
+          onClose={() => setIsMenuOpen(false)}
+        />
+      )}
     <div className="app">
       <div className="start-screen">
         <h1>LexiCard</h1>
@@ -92,5 +110,6 @@ export const StartScreen = ({
         )}
       </div>
     </div>
+     </>
   );
 };
