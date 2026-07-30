@@ -522,3 +522,30 @@ body {
 .word-count-selector select:focus {
   border-color: var(--primary-color);
 }
+
+
+/* --- Блок слова с озвучкой --- */
+.word-with-audio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.audio-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.audio-btn:hover {
+  background-color: var(--secondary-color);
+  opacity: 1;
+  transform: scale(1.1);
+}

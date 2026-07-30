@@ -36,7 +36,13 @@ export const Flashcard = ({
   const displayWord = direction === 'en-ru' ? currentWord.english : currentWord.russian;
   const correctAnswerText = direction === 'en-ru' ? currentWord.russian : currentWord.english;
   const placeholderText = direction === 'en-ru' ? 'Введите перевод на русский' : 'Введите перевод на английский';
-
+  const speakWord = () => {
+    // Создаем команду для синтеза речи
+    const utterance = new SpeechSynthesisUtterance(currentWord.english);
+    utterance.lang = 'en-US'; // Говорим браузеру, что язык английский
+    utterance.rate = 0.9; // Чуть медленнее, чтобы было понятно ученикам
+    window.speechSynthesis.speak(utterance);
+  };
   return (
     <div className="app">
       <div className="progress-bar">
@@ -47,7 +53,14 @@ export const Flashcard = ({
       )}
       
       <div className="card card-animate" key={currentWord.id}>
-        <h2 className="word">{displayWord}</h2>
+                <div className="word-with-audio">
+          <h2 className="word">{displayWord}</h2>
+          {direction === 'en-ru' && (
+            <button className="audio-btn" onClick={speakWord} title="Произнести">
+              🔊
+            </button>
+          )}
+        </div>
         <p className={`timer ${timeLeft <= 3 ? 'timer-danger' : ''}`}>Осталось времени: {timeLeft} сек</p>
         
         {answerStatus === 'correct' && (
