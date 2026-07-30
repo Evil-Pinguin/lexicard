@@ -17,10 +17,11 @@ interface FlashcardProps {
   handleCheckChoice: (choice: string) => void;
   handleNextWord: () => void;
   handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  isRetryPhase: boolean;
 }
 
 export const Flashcard = ({
-  mode, currentWord, timeLeft, userAnswer, answerStatus, choices, progressPercent, direction,
+  mode, currentWord, timeLeft, userAnswer, answerStatus, choices, progressPercent, direction, isRetryPhase,
   setUserAnswer, handleCheckAnswer, handleCheckChoice, handleNextWord, handleKeyDown
 }: FlashcardProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -41,6 +42,9 @@ export const Flashcard = ({
       <div className="progress-bar">
         <div className="progress-fill" style={{ width: `${progressPercent}%` }}></div>
       </div>
+            {isRetryPhase && (
+        <div className="retry-banner">🔁 Повторение ошибок</div>
+      )}
       
       <div className="card card-animate" key={currentWord.id}>
         <h2 className="word">{displayWord}</h2>

@@ -438,3 +438,16 @@ body {
   width: auto;
   flex: 1; /* Чтобы обе кнопки были одинакового размера */
 }
+
+/* --- Баннер этапа повтора --- */
+.retry-banner {
+  background-color: #fef3c7; /* Светло-желтый фон, как предупреждение */
+  color: #92400e;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 16px;
+  animation: dopaminePop 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}

@@ -13,6 +13,9 @@ const playSound = (isCorrect: boolean) => {
   const audioContext = new AudioContext();
   const oscillator = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
+  const [timeLeft, setTimeLeft] = useState<number>(10);
+  const [mistakeWords, setMistakeWords] = useState<WordCard[]>([]);
+  const [isRetryPhase, setIsRetryPhase] = useState<boolean>(false);
 
   oscillator.connect(gainNode);
   gainNode.connect(audioContext.destination);
@@ -89,11 +92,34 @@ function App() {
     }
   };
 
-  const handleNextWord = () => {
+    const handleNextWord = () => {
+    // Если текущее слово — последнее в массиве
     if (currentIndex >= words.length - 1) {
+      
+      // Проверяем, есть ли ошибки и не находимся ли мы уже в этапе повтора
+      if (mistakeWords.length > 0 && !isRetryPhase) {
+        // Запускаем этап повтора!
+        setWords(mistakeWords);       // Загоняем слова с ошибками как основное массив
+        setMistakeWords([]);          // Очищаем массив ошибок, чтобы не зациклиться
+        setIsRetryPhase(true);        // Включаем флаг повтора
+        setCurrentIndex(0);           // Начинаем с первого слова
+        setUserAnswer('');
+        setAnswerStatus('idle');
+        setTimeLeft(10);
+        
+        // Если был режим выбора, генерируем кнопки для первого слова повтора
+        if (mode !== null && mode === 'choice') {
+          generateChoices(mistakeWords[0]);
+        }
+        return; // Не даем коду идти дальше, остаемся в тесте
+      }
+      
+      // Если этап повтора пройден (или ошибок не было) — завершаем тест
       setIsFinished(true);
       return;
     }
+
+    // Обычный переход к следующему слову
     const nextIndex = currentIndex + 1;
     setCurrentIndex(nextIndex);
     setUserAnswer('');
@@ -119,7 +145,9 @@ function App() {
     } else {
       setAnswerStatus('incorrect');
       playSound(false);
+      setMistakeWords((prev) => [...prev, currentWord]); // <-- Добавляем слово в ошибки
       setTimeout(() => handleNextWord(), 1500);
+    
     }
   };
 
@@ -135,6 +163,7 @@ function App() {
     } else {
       setAnswerStatus('incorrect');
       playSound(false);
+      setMistakeWords((prev) => [...prev, currentWord]); 
       setTimeout(() => handleNextWord(), 1500);
     }
   };
@@ -150,6 +179,7 @@ function App() {
     if (timeLeft <= 0) {
       setAnswerStatus('incorrect');
       playSound(false); 
+      setMistakeWords((prev) => [...prev, currentWord]); 
       setTimeout(() => handleNextWord(), 1500); 
       return;
     }
@@ -189,6 +219,7 @@ function App() {
       choices={choices} 
       progressPercent={progressPercent}
       direction={direction}
+      isRetryPhase={isRetryPhase}
       setUserAnswer={setUserAnswer}
       handleCheckAnswer={handleCheckAnswer}
       handleCheckChoice={handleCheckChoice}
