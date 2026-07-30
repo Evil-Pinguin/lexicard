@@ -79,18 +79,20 @@ function App() {
     setDirection(dir);
     setIsRetryPhase(false);
     
-    try {
+        try {
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, count }), // Передаем count на бэкенд
+        body: JSON.stringify({ topic, count }),
       });
 
-      if (!response.ok) throw new Error('Ошибка сервера');
+      // Если сервер ответил ошибкой, читаем текст этой ошибки
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Сервер вернул ${response.status}: ${errorText}`);
+      }
 
       const aiWords: WordCard[] = await response.json();
-
-      // ЧИНИМ ID: нейросеть их не присылает, поэтому генерируем сами
       const aiWordsWithIds = aiWords.map((w, index) => ({ ...w, id: Date.now() + index }));
 
       setWords(aiWordsWithIds);
@@ -103,7 +105,8 @@ function App() {
       setTopic('');
     } catch (error) {
       console.error('Ошибка генерации:', error);
-      alert('Не удалось сгенерировать слова. Попробуйте еще раз.');
+      // Выводим саму ошибку в алерт, чтобы увидеть, что там за проблема
+      alert(`Не удалось сгенерировать слова.\nОшибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     } finally {
       setIsLoading(false);
     }
