@@ -1,3 +1,4 @@
+// Cache busting: forcing Vercel to rebuild function
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -14,32 +15,44 @@ export default async function handler(req, res) {
   try {
     const { topic } = req.body;
 
-    // URL для обращения к Gemini API (модель gemini-1.5-flash - быстрая и бесплатная)
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`;
-    const promptText = `Ты помощник для изучения английского языка. Пользователь назовет тему: "${topic}". Тебе нужно сгенерировать 5 английских слов по этой теме с переводом на русский. Верни ответ СТРОГО в формате JSON массива, без лишнего текста. Формат: [{"english": "word", "russian": "слово"}]`;
+    // URL API DeepSeek
+    const url = 'https://api.deepseek.com/chat/completions';
 
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        // Берем ключ из переменных окружения Vercel
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: promptText }] }],
-        generationConfig: {
-          responseMimeType: 'application/json' // Gemini вернет чистый JSON!
-        }
+        // Используем модель deepseek-chat
+        model: 'deepseek-chat',
+        messages: [
+          {
+            role: 'system',
+            content: 'Ты помощник для изучения английского языка. Пользователь назовет тему. Тебе нужно сгенерировать 5 английских слов по этой теме с переводом на русский. Верни ответ СТРОГО в формате JSON массива, без лишнего текста и markdown. Формат: [{"english": "word", "russian": "слово"}]'
+          },
+          {
+            role: 'user',
+            content: topic
+          }
+        ],
+        temperature: 0.7
       })
     });
 
     if (!response.ok) {
       const errData = await response.text();
-      throw new Error(`Gemini API error: ${response.status} - ${errData}`);
+      throw new Error(`DeepSeek API error: ${response.status} - ${errData}`);
     }
 
     const data = await response.json();
-    
-    // У Gemini немного другая структура ответа, достаем текст оттуда
-    const wordsJson = data.candidates[0].content.parts[0].text;
+    let wordsJson = data.choices[0].message.content;
 
-    // Отправляем слова на наш фронтенд
+    // На всякий случай очищаем от markdown (если модель решит его добавить)
+    wordsJson = wordsJson.replace(/```json/g, '').replace(/```/g, '').trim();
+
     return res.status(200).json(JSON.parse(wordsJson));
 
   } catch (error) {
