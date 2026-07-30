@@ -111,7 +111,8 @@ function App() {
   const handleCheckAnswer = () => {
     if (answerStatus !== 'idle') return;
     const normalizedAnswer = userAnswer.trim().toLowerCase();
-    if (normalizedAnswer === currentWord.russian) {
+        const correctAnswer = currentWord.russian.trim().toLowerCase();
+    if (normalizedAnswer === correctAnswer) {
       setAnswerStatus('correct');
       setScore(score + 1);
       playSound(true);
