@@ -426,3 +426,15 @@ body {
   text-decoration: line-through;
   opacity: 0.8;
 }
+
+/* --- Кнопки направления перевода --- */
+.ai-direction-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.ai-direction-buttons .ai-btn {
+  width: auto;
+  flex: 1; /* Чтобы обе кнопки были одинакового размера */
+}

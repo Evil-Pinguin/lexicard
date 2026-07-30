@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { type Mode, type WordCard } from '../types';
+import { type Mode, type WordCard, type Direction } from '../types';
 
 type AnswerStatus = 'idle' | 'correct' | 'incorrect';
 
@@ -11,6 +11,7 @@ interface FlashcardProps {
   answerStatus: AnswerStatus;
   choices: string[];
   progressPercent: number;
+  direction: Direction; // <-- Добавили направление
   setUserAnswer: (answer: string) => void;
   handleCheckAnswer: () => void;
   handleCheckChoice: (choice: string) => void;
@@ -19,18 +20,21 @@ interface FlashcardProps {
 }
 
 export const Flashcard = ({
-  mode, currentWord, timeLeft, userAnswer, answerStatus, choices, progressPercent,
+  mode, currentWord, timeLeft, userAnswer, answerStatus, choices, progressPercent, direction,
   setUserAnswer, handleCheckAnswer, handleCheckChoice, handleNextWord, handleKeyDown
 }: FlashcardProps) => {
-  // Хук для связи с DOM-элементом инпута
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Автофокус на инпуте при смене слова или режима
   useEffect(() => {
     if (mode === 'input' && answerStatus === 'idle') {
       inputRef.current?.focus();
     }
   }, [currentWord, mode, answerStatus]);
+
+  // Определяем, какое слово показывать крупно, а какое прятать
+  const displayWord = direction === 'en-ru' ? currentWord.english : currentWord.russian;
+  const correctAnswerText = direction === 'en-ru' ? currentWord.russian : currentWord.english;
+  const placeholderText = direction === 'en-ru' ? 'Введите перевод на русский' : 'Введите перевод на английский';
 
   return (
     <div className="app">
@@ -38,16 +42,17 @@ export const Flashcard = ({
         <div className="progress-fill" style={{ width: `${progressPercent}%` }}></div>
       </div>
       
-        <div className="card card-animate" key={currentWord.id}>
-        <h2 className="word">{currentWord.english}</h2>
+      <div className="card card-animate" key={currentWord.id}>
+        <h2 className="word">{displayWord}</h2>
         <p className={`timer ${timeLeft <= 3 ? 'timer-danger' : ''}`}>Осталось времени: {timeLeft} сек</p>
+        
         {answerStatus === 'correct' && (
           <div className="dopamine-badge">Отлично! +1</div>
         )}
-                {/* Блок исправления ошибки */}
+
         {answerStatus === 'incorrect' && (
           <div className="correction-block">
-            <p className="correct-answer">Правильный ответ: {currentWord.russian}</p>
+            <p className="correct-answer">Правильный ответ: {correctAnswerText}</p>
             {mode === 'input' && userAnswer.trim() && (
               <p className="wrong-answer">Ваш ответ: {userAnswer}</p>
             )}
@@ -57,13 +62,13 @@ export const Flashcard = ({
         {mode === 'input' ? (
           <div className="input-mode">
             <input 
-              ref={inputRef} // Привязываем ссылку к инпуту
+              ref={inputRef}
               type="text" 
               className={`answer-input ${answerStatus}`}
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Введите перевод"
+              placeholder={placeholderText}
               disabled={answerStatus !== 'idle'}
             />
             <button className="btn btn-primary" onClick={handleCheckAnswer}>Проверить</button>
@@ -74,7 +79,7 @@ export const Flashcard = ({
               <button 
                 key={choice} 
                 className={`choice-btn ${
-                  answerStatus === 'idle' ? '' : choice === currentWord.russian ? 'correct' : 'incorrect'
+                  answerStatus === 'idle' ? '' : choice === correctAnswerText ? 'correct' : 'incorrect'
                 }`}
                 onClick={() => handleCheckChoice(choice)}
                 disabled={answerStatus !== 'idle'}

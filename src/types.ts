@@ -5,3 +5,5 @@ export interface WordCard {
 }
 
 export type Mode = 'input' | 'choice';
+
+export type Direction = 'en-ru' | 'ru-en';

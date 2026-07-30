@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { words as initialWords } from './data';
-import { type Mode, type WordCard } from './types';
+import { type Mode, type WordCard, type Direction } from './types';
 import { StartScreen } from './components/StartScreen';
 import { ResultScreen } from './components/ResultScreen';
 import { Flashcard } from './components/Flashcard';
 
 type AnswerStatus = 'idle' | 'correct' | 'incorrect';
 
-// Функция генерации звука (остается здесь, так как это утилита)
+// Функция генерации звука
 const playSound = (isCorrect: boolean) => {
   const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
   const audioContext = new AudioContext();
@@ -42,48 +42,44 @@ function App() {
   const [isFinished, setIsFinished] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<number>(10);
 
-  // AI стейты (теперь на своем месте, на верху компонента)
+  // AI стейты и направление перевода
   const [words, setWords] = useState<WordCard[]>(initialWords);
   const [topic, setTopic] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [direction, setDirection] = useState<Direction>('en-ru');
 
   const currentWord = words[currentIndex];
 
-  const generateChoices = (correctWord: WordCard) => {
-    const wrongTranslations = words.filter(w => w.id !== correctWord.id).map(w => w.russian);
+  const generateChoices = (correctWord: WordCard, dir: Direction = direction) => {
+    const lang = dir === 'en-ru' ? 'russian' : 'english';
+    const wrongTranslations = words.filter(w => w.id !== correctWord.id).map(w => w[lang]);
     const shuffledWrong = wrongTranslations.sort(() => 0.5 - Math.random());
-    const finalChoices = [...shuffledWrong.slice(0, 3), correctWord.russian].sort(() => 0.5 - Math.random());
+    const finalChoices = [...shuffledWrong.slice(0, 3), correctWord[lang]].sort(() => 0.5 - Math.random());
     setChoices(finalChoices);
   };
 
-    const handleGenerateWords = async () => {
+  const handleGenerateWords = async (dir: Direction) => {
     if (!topic.trim()) return;
 
     setIsLoading(true);
+    setDirection(dir); // Устанавливаем направление для всего теста
     
     try {
-      // Делаем POST-запрос к нашей серверлесс-функции в папке api
       const response = await fetch('/api/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ topic }), // Отправляем тему, введенную пользователем
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic }),
       });
 
-      if (!response.ok) {
-        throw new Error('Ошибка сервера');
-      }
+      if (!response.ok) throw new Error('Ошибка сервера');
 
-      // Получаем слова из ответа
       const aiWords: WordCard[] = await response.json();
 
-      // Обновляем слова и сбрасываем прогресс теста
       setWords(aiWords);
       setCurrentIndex(0);
       setScore(0);
       setIsFinished(false);
-      setMode('input'); // Сразу кидаем в режим ввода текста
+      setMode('input');
       setTopic('');
     } catch (error) {
       console.error('Ошибка генерации:', error);
@@ -111,7 +107,10 @@ function App() {
   const handleCheckAnswer = () => {
     if (answerStatus !== 'idle') return;
     const normalizedAnswer = userAnswer.trim().toLowerCase();
-        const correctAnswer = currentWord.russian.trim().toLowerCase();
+    const correctAnswer = direction === 'en-ru' 
+      ? currentWord.russian.trim().toLowerCase() 
+      : currentWord.english.trim().toLowerCase();
+
     if (normalizedAnswer === correctAnswer) {
       setAnswerStatus('correct');
       setScore(score + 1);
@@ -120,13 +119,15 @@ function App() {
     } else {
       setAnswerStatus('incorrect');
       playSound(false);
-      setTimeout(() => handleNextWord(), 3000);
+      setTimeout(() => handleNextWord(), 1500);
     }
   };
 
   const handleCheckChoice = (choice: string) => {
     if (answerStatus !== 'idle') return;
-    if (choice === currentWord.russian) {
+    const correctChoice = direction === 'en-ru' ? currentWord.russian : currentWord.english;
+    
+    if (choice === correctChoice) {
       setAnswerStatus('correct');
       setScore(score + 1);
       playSound(true);
@@ -160,7 +161,6 @@ function App() {
 
   const progressPercent = ((currentIndex + 1) / words.length) * 100;
 
-  // Ранние возвраты
   if (mode === null) {
     return (
       <StartScreen 
@@ -179,7 +179,6 @@ function App() {
     return <ResultScreen score={score} totalWords={words.length} />;
   }
 
-  // Основной экран
   return (
     <Flashcard 
       mode={mode} 
@@ -189,6 +188,7 @@ function App() {
       answerStatus={answerStatus} 
       choices={choices} 
       progressPercent={progressPercent}
+      direction={direction}
       setUserAnswer={setUserAnswer}
       handleCheckAnswer={handleCheckAnswer}
       handleCheckChoice={handleCheckChoice}
