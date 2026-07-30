@@ -7,15 +7,11 @@ import { Flashcard } from './components/Flashcard';
 
 type AnswerStatus = 'idle' | 'correct' | 'incorrect';
 
-// Функция генерации звука
 const playSound = (isCorrect: boolean) => {
   const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
   const audioContext = new AudioContext();
   const oscillator = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
-  const [timeLeft, setTimeLeft] = useState<number>(10);
-  const [mistakeWords, setMistakeWords] = useState<WordCard[]>([]);
-  const [isRetryPhase, setIsRetryPhase] = useState<boolean>(false);
 
   oscillator.connect(gainNode);
   gainNode.connect(audioContext.destination);
@@ -35,7 +31,6 @@ const playSound = (isCorrect: boolean) => {
 };
 
 function App() {
-  // Основные стейты
   const [mode, setMode] = useState<Mode | null>(null); 
   const [choices, setChoices] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -43,13 +38,15 @@ function App() {
   const [answerStatus, setAnswerStatus] = useState<AnswerStatus>('idle');
   const [score, setScore] = useState<number>(0);
   const [isFinished, setIsFinished] = useState<boolean>(false);
+  
+  // Все стейты строго внутри компонента App!
   const [timeLeft, setTimeLeft] = useState<number>(10);
-
-  // AI стейты и направление перевода
   const [words, setWords] = useState<WordCard[]>(initialWords);
   const [topic, setTopic] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [direction, setDirection] = useState<Direction>('en-ru');
+  const [mistakeWords, setMistakeWords] = useState<WordCard[]>([]);
+  const [isRetryPhase, setIsRetryPhase] = useState<boolean>(false);
 
   const currentWord = words[currentIndex];
 
@@ -65,7 +62,8 @@ function App() {
     if (!topic.trim()) return;
 
     setIsLoading(true);
-    setDirection(dir); // Устанавливаем направление для всего теста
+    setDirection(dir);
+    setIsRetryPhase(false); // Сбрасываем флаг повтора при новой генерации
     
     try {
       const response = await fetch('/api/generate', {
@@ -81,6 +79,7 @@ function App() {
       setWords(aiWords);
       setCurrentIndex(0);
       setScore(0);
+      setMistakeWords([]); // Очищаем ошибки при новом тесте
       setIsFinished(false);
       setMode('input');
       setTopic('');
@@ -92,34 +91,25 @@ function App() {
     }
   };
 
-    const handleNextWord = () => {
-    // Если текущее слово — последнее в массиве
+  const handleNextWord = () => {
     if (currentIndex >= words.length - 1) {
-      
-      // Проверяем, есть ли ошибки и не находимся ли мы уже в этапе повтора
       if (mistakeWords.length > 0 && !isRetryPhase) {
-        // Запускаем этап повтора!
-        setWords(mistakeWords);       // Загоняем слова с ошибками как основное массив
-        setMistakeWords([]);          // Очищаем массив ошибок, чтобы не зациклиться
-        setIsRetryPhase(true);        // Включаем флаг повтора
-        setCurrentIndex(0);           // Начинаем с первого слова
+        setWords(mistakeWords);
+        setMistakeWords([]);
+        setIsRetryPhase(true);
+        setCurrentIndex(0);
         setUserAnswer('');
         setAnswerStatus('idle');
         setTimeLeft(10);
-        
-        // Если был режим выбора, генерируем кнопки для первого слова повтора
         if (mode !== null && mode === 'choice') {
           generateChoices(mistakeWords[0]);
         }
-        return; // Не даем коду идти дальше, остаемся в тесте
+        return;
       }
-      
-      // Если этап повтора пройден (или ошибок не было) — завершаем тест
       setIsFinished(true);
       return;
     }
 
-    // Обычный переход к следующему слову
     const nextIndex = currentIndex + 1;
     setCurrentIndex(nextIndex);
     setUserAnswer('');
@@ -145,9 +135,8 @@ function App() {
     } else {
       setAnswerStatus('incorrect');
       playSound(false);
-      setMistakeWords((prev) => [...prev, currentWord]); // <-- Добавляем слово в ошибки
+      setMistakeWords((prev) => [...prev, currentWord]);
       setTimeout(() => handleNextWord(), 1500);
-    
     }
   };
 
@@ -163,7 +152,7 @@ function App() {
     } else {
       setAnswerStatus('incorrect');
       playSound(false);
-      setMistakeWords((prev) => [...prev, currentWord]); 
+      setMistakeWords((prev) => [...prev, currentWord]);
       setTimeout(() => handleNextWord(), 1500);
     }
   };
@@ -179,7 +168,7 @@ function App() {
     if (timeLeft <= 0) {
       setAnswerStatus('incorrect');
       playSound(false); 
-      setMistakeWords((prev) => [...prev, currentWord]); 
+      setMistakeWords((prev) => [...prev, currentWord]);
       setTimeout(() => handleNextWord(), 1500); 
       return;
     }
@@ -206,7 +195,8 @@ function App() {
   }
 
   if (isFinished) {
-    return <ResultScreen score={score} totalWords={words.length} />;
+    const initialTotal = isRetryPhase ? words.length : initialWords.length;
+    return <ResultScreen score={score} totalWords={initialTotal} hadRetries={isRetryPhase} />;
   }
 
   return (
