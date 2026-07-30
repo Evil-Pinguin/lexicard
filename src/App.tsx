@@ -98,6 +98,7 @@ function App() {
       setScore(0);
       setMistakeWords([]);
       setIsFinished(false);
+      setTimeLeft(timerDuration);
       setMode('input');
       setTopic('');
     } catch (error) {
@@ -117,7 +118,7 @@ function App() {
         setCurrentIndex(0);
         setUserAnswer('');
         setAnswerStatus('idle');
-        setTimeLeft(10);
+        setTimeLeft(timerDuration);
         if (mode !== null && mode === 'choice') {
           generateChoices(mistakeWords[0]);
         }
@@ -131,7 +132,7 @@ function App() {
     setCurrentIndex(nextIndex);
     setUserAnswer('');
     setAnswerStatus('idle');
-    setTimeLeft(10);
+    setTimeLeft(timerDuration);
     if (mode !== null && mode === 'choice') {
       generateChoices(words[nextIndex]);
     }
