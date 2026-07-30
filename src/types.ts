@@ -4,4 +4,4 @@ export interface WordCard {
     russian: string;
 }
 
-export type Mode = 'input' | 'choise';
+export type Mode = 'input' | 'choice';

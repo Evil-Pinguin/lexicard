@@ -103,7 +103,7 @@ function App() {
     setUserAnswer('');
     setAnswerStatus('idle');
     setTimeLeft(10);
-    if (mode === 'choice') {
+    if (mode !== null && mode === 'choice') {
       generateChoices(words[nextIndex]);
     }
   };
