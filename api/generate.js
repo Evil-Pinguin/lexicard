@@ -15,19 +15,19 @@ export default async function handler(req, res) {
   try {
     const { topic } = req.body;
 
-    // URL API DeepSeek
-    const url = 'https://api.deepseek.com/chat/completions';
+    // URL API Groq
+    const url = 'https://api.groq.com/openai/v1/chat/completions';
 
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         // Берем ключ из переменных окружения Vercel
-        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        // Используем модель deepseek-chat
-        model: 'deepseek-chat',
+        // Используем быструю и бесплатную модель Llama 3
+        model: 'llama3-8b-8192',
         messages: [
           {
             role: 'system',
@@ -44,13 +44,13 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errData = await response.text();
-      throw new Error(`DeepSeek API error: ${response.status} - ${errData}`);
+      throw new Error(`Groq API error: ${response.status} - ${errData}`);
     }
 
     const data = await response.json();
     let wordsJson = data.choices[0].message.content;
 
-    // На всякий случай очищаем от markdown (если модель решит его добавить)
+    // Очищаем от markdown на всякий случай
     wordsJson = wordsJson.replace(/```json/g, '').replace(/```/g, '').trim();
 
     return res.status(200).json(JSON.parse(wordsJson));
