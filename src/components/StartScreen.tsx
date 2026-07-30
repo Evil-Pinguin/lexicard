@@ -7,18 +7,20 @@ interface StartScreenProps {
   topic: string;
   setTopic: (topic: string) => void;
   isLoading: boolean;
-  handleGenerateWords: (dir: Direction) => void;
-    learnedWords: WordCard[];
+  handleGenerateWords: (dir: Direction, count: number) => void;
+  learnedWords: WordCard[];
+  wordCount: number;
+  setWordCount: (count: number) => void;
 }
 
 export const StartScreen = ({ 
-  setMode, generateChoices, currentWord, topic, setTopic, isLoading, handleGenerateWords, learnedWords 
+  setMode, generateChoices, currentWord, topic, setTopic, isLoading, handleGenerateWords, learnedWords, wordCount, setWordCount 
 }: StartScreenProps) => {
   
-  const handleAiKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // По Enter запускаем генерацию в базовом направлении (En -> Ru)
+    const handleAiKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  
     if (e.key === 'Enter' && !isLoading) {
-      handleGenerateWords('en-ru');
+      handleGenerateWords('en-ru', wordCount); 
     }
   };
 
@@ -38,17 +40,30 @@ export const StartScreen = ({
             placeholder="Например: Органы человека"
             disabled={isLoading}
           />
+                    <div className="word-count-selector">
+            <label htmlFor="word-count">Количество слов:</label>
+            <select 
+              id="word-count" 
+              value={wordCount} 
+              onChange={(e) => setWordCount(Number(e.target.value))}
+              disabled={isLoading}
+            >
+              {[3, 5, 10, 15, 20, 25, 30].map(n => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
           <div className="ai-direction-buttons">
-            <button 
+                        <button 
               className="btn btn-primary ai-btn" 
-              onClick={() => handleGenerateWords('en-ru')}
+              onClick={() => handleGenerateWords('en-ru', wordCount)}
               disabled={isLoading || !topic.trim()}
             >
               {isLoading ? 'Генерация...' : 'Англ → Рус'}
             </button>
             <button 
               className="btn btn-primary ai-btn" 
-              onClick={() => handleGenerateWords('ru-en')}
+              onClick={() => handleGenerateWords('ru-en', wordCount)}
               disabled={isLoading || !topic.trim()}
             >
               {isLoading ? 'Генерация...' : 'Рус → Англ'}

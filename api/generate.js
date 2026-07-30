@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { topic } = req.body;
+    const { topic, count } = req.body;
 
     // URL API Groq
     const url = 'https://api.groq.com/openai/v1/chat/completions';
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
         messages: [
           {
             role: 'system',
-            content: 'Ты помощник для изучения английского языка. Пользователь назовет тему. Тебе нужно сгенерировать 5 английских слов по этой теме с переводом на русский. Верни ответ СТРОГО в формате JSON массива, без лишнего текста и markdown. Формат: [{"english": "word", "russian": "слово"}]'
+            content: `Ты помощник для изучения английского языка. Пользователь назовет тему. Тебе нужно сгенерировать ${count || 5} английских слов по этой теме с переводом на русский. Верни ответ СТРОГО в формате JSON массива, без лишнего текста и markdown. Формат: [{"english": "word", "russian": "слово"}]`
           },
           {
             role: 'user',

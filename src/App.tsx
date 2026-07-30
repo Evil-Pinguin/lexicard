@@ -57,6 +57,8 @@ function App() {
     }
   });
 
+  const [wordCount, setWordCount] = useState<number>(5);
+
   const currentWord = words[currentIndex];
 
   const generateChoices = (correctWord: WordCard, dir: Direction = direction) => {
@@ -67,7 +69,7 @@ function App() {
     setChoices(finalChoices);
   };
 
-  const handleGenerateWords = async (dir: Direction) => {
+    const handleGenerateWords = async (dir: Direction, count: number) => {
     if (!topic.trim()) return;
 
     setIsLoading(true);
@@ -78,14 +80,17 @@ function App() {
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic }),
+        body: JSON.stringify({ topic, count }), // Передаем count на бэкенд
       });
 
       if (!response.ok) throw new Error('Ошибка сервера');
 
       const aiWords: WordCard[] = await response.json();
 
-      setWords(aiWords);
+      // ЧИНИМ ID: нейросеть их не присылает, поэтому генерируем сами
+      const aiWordsWithIds = aiWords.map((w, index) => ({ ...w, id: Date.now() + index }));
+
+      setWords(aiWordsWithIds);
       setCurrentIndex(0);
       setScore(0);
       setMistakeWords([]);
@@ -212,6 +217,8 @@ function App() {
         isLoading={isLoading}
         handleGenerateWords={handleGenerateWords}
         learnedWords={learnedWords}
+        wordCount={wordCount}
+        setWordCount={setWordCount}
       />
     );
   }

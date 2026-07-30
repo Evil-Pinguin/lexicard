@@ -495,3 +495,30 @@ body {
   font-size: 0.85rem;
   color: #64748b;
 }
+
+/* --- Селектор количества слов --- */
+.word-count-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+  color: #64748b;
+}
+
+.word-count-selector select {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  background-color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+
+.word-count-selector select:focus {
+  border-color: var(--primary-color);
+}
