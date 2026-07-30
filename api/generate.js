@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     const { topic } = req.body;
 
     // URL для обращения к Gemini API (модель gemini-1.5-flash - быстрая и бесплатная)
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+           const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`;
     const promptText = `Ты помощник для изучения английского языка. Пользователь назовет тему: "${topic}". Тебе нужно сгенерировать 5 английских слов по этой теме с переводом на русский. Верни ответ СТРОГО в формате JSON массива, без лишнего текста. Формат: [{"english": "word", "russian": "слово"}]`;
 
     const response = await fetch(url, {
