@@ -1,75 +1,52 @@
-# React + TypeScript + Vite
+# LexiCard 🃏⚡
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Приложение для изучения английских слов с помощью карточек (типа Quizlet). Главная фишка — генерация персонализированных тестов с помощью AI. Пользователь вводит тему (например, "Космос" или "Органы человека"), и нейросеть за секунды создает уникальный тест.
 
-Currently, two official plugins are available:
+Ссылка на живое демо: [https://lexicard-evilpin.vercel.app/]
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Стек технологий
+- **Frontend:** React 18, TypeScript, Vite
+- **Backend:** Serverless Functions (Vercel)
+- **AI:** Groq API (Llama 3.1)
+- **Стили:** CSS3 (Flexbox, Grid, CSS-переменные, кастомные анимации)
 
-## React Compiler
+## ✨ Функционал
+- **AI-Генерация:** Запрос к LLM через безопасную serverless-функцию (API-ключ скрыт на сервере). Возвращает строго типизированный JSON.
+- **Два режима обучения:** Ввод перевода с клавиатуры и выбор из 4 вариантов.
+- **Геймификация и UX:**
+  - Таймер на ответ с визуальной индикацией (краснеет и пульсирует за 3 сек до конца).
+  - Дофаминовый бейдж при правильном ответе.
+  - Звуковой отклик (Web Audio API: мажорное трезвучие при успехе, низкий гул при ошибке).
+  - Конфетти (canvas-confetti) при идеальном прохождении теста.
+  - Автофокус на инпуте при смене карточки (не нужно кликать мышкой).
+  - Проверка ответов нечувствительна к регистру и лишним пробелам.
+- **Архитектура:** Разделение на "Умные" и "Глупые" компоненты (Container/Presentational pattern). Вся бизнес-логика в `App.tsx`, отрисовка вынесена в `components/`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠 Как запустить локально
+1. Клонируйте репозиторий:
+   ```bash
+   git clone https://github.com/Evil-Pinguin/lexicard.git
 
-## Expanding the ESLint configuration
+2. Установите зависимости:
+Bash
+npm install
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+3. Для работы AI-генерации нужен API-ключ от GroqConsole. Создайте файл .env в корне проекта (не коммитится в Git!) и добавьте ключ:
+env
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+GROQ_API_KEY=ваш_ключ_здесь
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+4. Запустите сервер разработки:
+Bash
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+npm run dev
 
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+📂 Архитектура проекта
+api/generate.js — Serverless-функция. Принимает тему от фронта, делает запрос к Groq API, чистит ответ от markdown и возвращает JSON.
+src/App.tsx — Главный компонент. Хранит стейты, обрабатывает таймеры (useEffect + setTimeout), валидирует ответы.
+src/components/ — "Глупые" компоненты (StartScreen, Flashcard, ResultScreen), отвечающие только за верстку и отрисовку пропсов.
+src/types.ts — Строгая типизация сущностей (WordCard, Mode).
+📝 Планы по развитию
+Добавить сохранение статистики в LocalStorage.
+Адаптивная верстка для мобильных устройств.
+Выбор количества слов в тесте (от 3 до 30).
