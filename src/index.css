@@ -402,3 +402,27 @@ body {
     font-size: 1.05rem;
   }
 }
+/* --- Блок исправления ошибки --- */
+.correction-block {
+  background-color: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  animation: dopaminePop 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  text-align: center;
+}
+
+.correct-answer {
+  color: var(--success-color);
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.wrong-answer {
+  color: var(--danger-color);
+  font-size: 0.95rem;
+  text-decoration: line-through;
+  opacity: 0.8;
+}

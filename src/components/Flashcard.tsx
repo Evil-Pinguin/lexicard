@@ -44,6 +44,15 @@ export const Flashcard = ({
         {answerStatus === 'correct' && (
           <div className="dopamine-badge">Отлично! +1</div>
         )}
+                {/* Блок исправления ошибки */}
+        {answerStatus === 'incorrect' && (
+          <div className="correction-block">
+            <p className="correct-answer">Правильный ответ: {currentWord.russian}</p>
+            {mode === 'input' && userAnswer.trim() && (
+              <p className="wrong-answer">Ваш ответ: {userAnswer}</p>
+            )}
+          </div>
+        )}
         
         {mode === 'input' ? (
           <div className="input-mode">

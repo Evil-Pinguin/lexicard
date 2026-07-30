@@ -120,7 +120,7 @@ function App() {
     } else {
       setAnswerStatus('incorrect');
       playSound(false);
-      setTimeout(() => handleNextWord(), 1500);
+      setTimeout(() => handleNextWord(), 3000);
     }
   };
 
