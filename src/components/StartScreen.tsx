@@ -8,10 +8,11 @@ interface StartScreenProps {
   setTopic: (topic: string) => void;
   isLoading: boolean;
   handleGenerateWords: (dir: Direction) => void;
+    learnedWords: WordCard[];
 }
 
 export const StartScreen = ({ 
-  setMode, generateChoices, currentWord, topic, setTopic, isLoading, handleGenerateWords 
+  setMode, generateChoices, currentWord, topic, setTopic, isLoading, handleGenerateWords, learnedWords 
 }: StartScreenProps) => {
   
   const handleAiKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -61,6 +62,19 @@ export const StartScreen = ({
           <button className="btn btn-secondary" onClick={() => setMode('input')} disabled={isLoading}>Вписать слово</button>
           <button className="btn btn-secondary" onClick={() => { setMode('choice'); generateChoices(currentWord); }} disabled={isLoading}>Выбрать из вариантов</button>
         </div>
+                {learnedWords.length > 0 && (
+          <div className="dictionary-section">
+            <h3>Мой словарь ({learnedWords.length})</h3>
+            <div className="dictionary-list">
+              {learnedWords.map((word) => (
+                <div key={word.id} className="dictionary-item">
+                  <span className="dict-en">{word.english}</span>
+                  <span className="dict-ru">{word.russian}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

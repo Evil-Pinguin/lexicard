@@ -39,7 +39,6 @@ function App() {
   const [score, setScore] = useState<number>(0);
   const [isFinished, setIsFinished] = useState<boolean>(false);
   
-  // Все стейты строго внутри компонента App!
   const [timeLeft, setTimeLeft] = useState<number>(10);
   const [words, setWords] = useState<WordCard[]>(initialWords);
   const [topic, setTopic] = useState<string>('');
@@ -47,6 +46,16 @@ function App() {
   const [direction, setDirection] = useState<Direction>('en-ru');
   const [mistakeWords, setMistakeWords] = useState<WordCard[]>([]);
   const [isRetryPhase, setIsRetryPhase] = useState<boolean>(false);
+  
+  // Стейт выученных слов. Читаем из localStorage при загрузке приложения.
+  const [learnedWords, setLearnedWords] = useState<WordCard[]>(() => {
+    try {
+      const saved = localStorage.getItem('lexicard_learned');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const currentWord = words[currentIndex];
 
@@ -63,7 +72,7 @@ function App() {
 
     setIsLoading(true);
     setDirection(dir);
-    setIsRetryPhase(false); // Сбрасываем флаг повтора при новой генерации
+    setIsRetryPhase(false);
     
     try {
       const response = await fetch('/api/generate', {
@@ -79,7 +88,7 @@ function App() {
       setWords(aiWords);
       setCurrentIndex(0);
       setScore(0);
-      setMistakeWords([]); // Очищаем ошибки при новом тесте
+      setMistakeWords([]);
       setIsFinished(false);
       setMode('input');
       setTopic('');
@@ -131,6 +140,7 @@ function App() {
       setAnswerStatus('correct');
       setScore(score + 1);
       playSound(true);
+      setLearnedWords((prev) => prev.some(w => w.id === currentWord.id) ? prev : [...prev, currentWord]);
       setTimeout(() => handleNextWord(), 1500);
     } else {
       setAnswerStatus('incorrect');
@@ -148,6 +158,7 @@ function App() {
       setAnswerStatus('correct');
       setScore(score + 1);
       playSound(true);
+      setLearnedWords((prev) => prev.some(w => w.id === currentWord.id) ? prev : [...prev, currentWord]);
       setTimeout(() => handleNextWord(), 1500);
     } else {
       setAnswerStatus('incorrect');
@@ -163,6 +174,16 @@ function App() {
     }
   };
 
+  // Сохраняем выученные слова в localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('lexicard_learned', JSON.stringify(learnedWords));
+    } catch (e) {
+      console.error('Ошибка сохранения в LocalStorage', e);
+    }
+  }, [learnedWords]);
+
+  // Таймер
   useEffect(() => {
     if (mode === null || isFinished || answerStatus !== 'idle') return;
     if (timeLeft <= 0) {
@@ -190,6 +211,7 @@ function App() {
         setTopic={setTopic}
         isLoading={isLoading}
         handleGenerateWords={handleGenerateWords}
+        learnedWords={learnedWords}
       />
     );
   }
