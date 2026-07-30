@@ -1,14 +1,11 @@
 export default async function handler(req, res) {
-
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -17,42 +14,35 @@ export default async function handler(req, res) {
   try {
     const { topic } = req.body;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // URL для обращения к Gemini API (модель gemini-1.5-flash - быстрая и бесплатная)
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`;
+
+    const promptText = `Ты помощник для изучения английского языка. Пользователь назовет тему: "${topic}". Тебе нужно сгенерировать 5 английских слов по этой теме с переводом на русский. Верни ответ СТРОГО в формате JSON массива, без лишнего текста. Формат: [{"english": "word", "russian": "слово"}]`;
+
+    const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-   
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: 'Ты помощник для изучения английского языка. Пользователь назовет тему. Тебе нужно сгенерировать 5 английских слов по этой теме с переводом на русский. Верни ответ СТРОГО в формате JSON массива, без лишнего текста и markdown. Формат: [{"english": "word", "russian": "слово"}]'
-          },
-          {
-            role: 'user',
-            content: topic
-          }
-        ],
-        temperature: 0.7
+        contents: [{ parts: [{ text: promptText }] }],
+        generationConfig: {
+          responseMimeType: 'application/json' // Gemini вернет чистый JSON!
+        }
       })
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+      const errData = await response.text();
+      throw new Error(`Gemini API error: ${response.status} - ${errData}`);
     }
 
     const data = await response.json();
     
-    let wordsJson = data.choices[0].message.content;
-
-    // Очищаем от возможных markdown символов (```json и ```)
-    wordsJson = wordsJson.replace(/```json/g, '').replace(/```/g, '').trim();
+    // У Gemini немного другая структура ответа, достаем текст оттуда
+    const wordsJson = data.candidates[0].content.parts[0].text;
 
     // Отправляем слова на наш фронтенд
     return res.status(200).json(JSON.parse(wordsJson));
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Failed to generate words' });
