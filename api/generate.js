@@ -46,10 +46,13 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     
-    const wordsJson = data.choices[0].message.content;
+    let wordsJson = data.choices[0].message.content;
 
+    // Очищаем от возможных markdown символов (```json и ```)
+    wordsJson = wordsJson.replace(/```json/g, '').replace(/```/g, '').trim();
+
+    // Отправляем слова на наш фронтенд
     return res.status(200).json(JSON.parse(wordsJson));
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Failed to generate words' });
